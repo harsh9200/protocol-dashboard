@@ -1,28 +1,23 @@
 from utils import *
+from pyecharts.types import JsCode
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Line
-
 
 class BarOverlapLineChart:
     def __init__(
         self,
-        title_name,
+        title,
         yaxis_name,
         xaxis_name,
         height="1000px",
-        width="100%",
-        bg_color="#232329",
     ):
         self.BAR_CHART = Bar(
-            init_opts=opts.InitOpts(height=height, width=width, bg_color=bg_color)
+            init_opts=opts.InitOpts(height=height, width="100%", bg_color="#232329")
         )
-
-        self.LINE_CHART = Line()
-
         self.BAR_CHART.set_global_opts(
             title_opts=opts.TitleOpts(
-                title=title_name,
-                pos_left="20",
+                title=title,
+                pos_left="10",
                 pos_right="0",
                 pos_top="10",
                 pos_bottom="0",
@@ -84,7 +79,18 @@ class BarOverlapLineChart:
                 name_location="start",
                 min_interval=5,
                 position='10',
-                axislabel_opts=opts.LabelOpts(is_show=True),
+                axislabel_opts=opts.LabelOpts(
+                    is_show=True,
+                    formatter=JsCode(
+                        """
+                        function Formatter(n) {
+                            let word = n.split(',');
+                            
+                            return word[0];
+                        };
+                        """
+                    )
+                ),
             ),
             yaxis_opts=opts.AxisOpts(
                 type_="value",
@@ -112,7 +118,19 @@ class BarOverlapLineChart:
                         color=None,
                     ),
                 ),
-                axislabel_opts=opts.LabelOpts(),
+                axislabel_opts=opts.LabelOpts(
+                    formatter=JsCode(
+                        """
+                        function Formatter(n) {
+                            if (n < 1e3) return n;
+                            if (n >= 1e3 && n < 1e6) return +(n / 1e3).toFixed(1) + "K";
+                            if (n >= 1e6 && n < 1e9) return +(n / 1e6).toFixed(1) + "M";
+                            if (n >= 1e9 && n < 1e12) return +(n / 1e9).toFixed(1) + "B";
+                            if (n >= 1e12) return +(n / 1e12).toFixed(1) + "T";
+                        };
+                        """
+                    )
+                ),
                 axispointer_opts=opts.AxisPointerOpts(),
                 splitline_opts=opts.SplitLineOpts(
                     is_show=True,
@@ -130,6 +148,44 @@ class BarOverlapLineChart:
             ],
         )
 
+        self.LINE_CHART = Line()
+
+    def add_xaxis_line_chart(self, xaxis_data):
+        self.LINE_CHART.add_xaxis(xaxis_data)
+    
+    def add_xaxis_bar_chart(self, xaxis_data):
+        self.BAR_CHART.add_xaxis(xaxis_data)
+    
+    def add_yaxis_bar_chart(self, series_name, color, yaxis_data):
+        self.BAR_CHART.add_yaxis(
+            series_name=series_name,
+            y_axis=yaxis_data,
+            itemstyle_opts=opts.ItemStyleOpts(color=color),
+            label_opts=opts.LabelOpts(is_show=False)
+        )
+    
+    def add_yaxis_line_chart(self, series_name, color, yaxis_data):
+        self.LINE_CHART.add_yaxis(
+            series_name=series_name,
+            y_axis=yaxis_data,
+            yaxis_index=1,
+            itemstyle_opts=opts.ItemStyleOpts(color=color),
+            label_opts=opts.LabelOpts(is_show=False)
+        )
+    
+    def extend_axis(self, name):
+        self.BAR_CHART.extend_axis(
+            yaxis=opts.AxisOpts(
+                name=name,
+                type_="value",
+                name_location="middle",
+                name_gap=50,
+                name_rotate=-90,
+                name_textstyle_opts=opts.TextStyleOpts(
+                    font_size=15,
+                ),
+            )
+        )
 
 class DepositsAndWithdrawsChart(BarOverlapLineChart):
     def __init__(self, dataframe, height="1000px", width="100%", bg_color="#232329"):
@@ -189,7 +245,6 @@ class DepositsAndWithdrawsChart(BarOverlapLineChart):
 
         return self.BAR_CHART.overlap(self.LINE_CHART)
 
-
 class ActiveUsers(BarOverlapLineChart):
     def __init__(self, dataframe, height="1000px", width="100%", bg_color="#232329"):
         self.dataframe = dataframe
@@ -212,7 +267,7 @@ class ActiveUsers(BarOverlapLineChart):
 
         self.BAR_CHART.add_xaxis(xaxis_data)
         self.BAR_CHART.add_yaxis(
-            series_name="Active Users",
+            series_name="Daily Active Users",
             y_axis=self.dataframe.dailyActiveUsers.to_list(),
             itemstyle_opts=opts.ItemStyleOpts(color="#5a66f9"),
         )

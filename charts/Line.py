@@ -1,26 +1,26 @@
 from utils import *
+from config import *
 from pyecharts.charts import Line
+from pyecharts.types import JsCode
 from pyecharts import options as opts
-
 
 class LineChart:
     def __init__(
         self,
-        title_name,
-        yaxis_name,
+        title,
         xaxis_name,
+        yaxis_name,
+        yaxis_namegap=35,
         height="1000px",
-        width="100%",
-        bg_color="#232329",
     ):
         self.LINE_CHART = Line(
-            init_opts=opts.InitOpts(width=width, height=height, bg_color=bg_color)
+            init_opts=opts.InitOpts(height=height, width="100%", bg_color="#232329")
         )
-
+        
         self.LINE_CHART.set_global_opts(
             title_opts=opts.TitleOpts(
-                title=title_name,
-                pos_left="60",
+                title=title,
+                pos_left="10",
                 pos_right="0",
                 pos_top="10",
                 pos_bottom="0",
@@ -69,17 +69,28 @@ class LineChart:
                 type_="category",
                 name=xaxis_name,
                 is_show=True,
-                name_gap=50,
+                name_gap=30,
                 name_location="start",
                 min_interval=5,
-                axislabel_opts=opts.LabelOpts(is_show=True),
+                axislabel_opts=opts.LabelOpts(
+                    is_show=True,
+                    formatter=JsCode(
+                        """
+                        function Formatter(n) {
+                            let word = n.split(',');
+                            
+                            return word[0];
+                        };
+                        """
+                    )
+                ),
             ),
             yaxis_opts=opts.AxisOpts(
                 type_="value",
                 name=yaxis_name,
                 is_show=True,
                 name_location="middle",
-                name_gap=50,
+                name_gap=yaxis_namegap,
                 offset=5,
                 split_number=5,
                 name_textstyle_opts=opts.TextStyleOpts(
@@ -100,7 +111,19 @@ class LineChart:
                         color=None,
                     ),
                 ),
-                axislabel_opts=opts.LabelOpts(),
+                axislabel_opts=opts.LabelOpts(
+                    formatter=JsCode(
+                        """
+                        function Formatter(n) {
+                            if (n < 1e3) return n;
+                            if (n >= 1e3 && n < 1e6) return +(n / 1e3).toFixed(1) + "K";
+                            if (n >= 1e6 && n < 1e9) return +(n / 1e6).toFixed(1) + "M";
+                            if (n >= 1e9 && n < 1e12) return +(n / 1e9).toFixed(1) + "B";
+                            if (n >= 1e12) return +(n / 1e12).toFixed(1) + "T";
+                        };
+                        """
+                    )
+                ),
                 axispointer_opts=opts.AxisPointerOpts(),
                 splitline_opts=opts.SplitLineOpts(
                     is_show=True,
@@ -117,61 +140,14 @@ class LineChart:
                 opts.DataZoomOpts(type_="inside"),
             ],
         )
-
-
-class RevenueChart(LineChart):
-    def __init__(self, dataframe, height="1000px", width="100%", bg_color="#232329"):
-        self.dataframe = dataframe
-        self.dataframe.columns = [
-            "id",
-            "totalValueLockedUSD",
-            "dailySupplySideRevenueUSD",
-            "cumulativeSupplySideRevenueUSD",
-            "dailyProtocolSideRevenueUSD",
-            "cumulativeProtocolSideRevenueUSD",
-            "dailyTotalRevenueUSD",
-            "cumulativeTotalRevenueUSD",
-            "timestamp",
-        ]
-
-        super().__init__(
-            "Revenue (USD)", "Revenue (USD)", "UTC", height, width, bg_color
-        )
-
-    def chart(self):
-        xaxis_data = format_xaxis(self.dataframe.id)
-
+    
+    def add_xaxis(self, xaxis_data):
         self.LINE_CHART.add_xaxis(xaxis_data)
-
+    
+    def add_yaxis(self, series_name, color, yaxis_data):
         self.LINE_CHART.add_yaxis(
-            series_name="Total Revenue (USD)",
-            is_smooth=True,
-            is_symbol_show=False,
-            y_axis=self.dataframe.dailyTotalRevenueUSD.round(1).to_list(),
-            itemstyle_opts=opts.ItemStyleOpts(color="#313c47"),
-            areastyle_opts=opts.AreaStyleOpts(opacity=0.8)
+            series_name=series_name,
+            y_axis=yaxis_data,
+            itemstyle_opts=opts.ItemStyleOpts(color=color),
+            label_opts=opts.LabelOpts(is_show=False)
         )
-        self.LINE_CHART.add_yaxis(
-            series_name="Supply Revenue (USD)",
-            is_smooth=True,
-            is_symbol_show=False,
-            y_axis=self.dataframe.dailySupplySideRevenueUSD.round(1).to_list(),
-            itemstyle_opts=opts.ItemStyleOpts(
-                color="#12b8ff", border_color="#12b8ff", border_width=3
-            ),
-            areastyle_opts=opts.AreaStyleOpts(opacity=0.5)
-        )
-        
-        self.LINE_CHART.add_yaxis(
-            series_name="Protocol Revenue (USD)",
-            is_symbol_show=False,
-            y_axis=self.dataframe.dailyProtocolSideRevenueUSD.round(1).to_list(),
-            areastyle_opts=opts.AreaStyleOpts(opacity=0.5),
-            itemstyle_opts=opts.ItemStyleOpts(
-                color="#5a66f9", border_color="#5a66f9", border_width=3
-            ),
-        )
-
-
-        self.LINE_CHART.set_series_opts(label_opts=opts.LabelOpts(is_show=False))
-        return self.LINE_CHART

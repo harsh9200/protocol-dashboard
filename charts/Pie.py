@@ -1,4 +1,3 @@
-import data
 from utils import *
 from pyecharts.charts import Pie
 from pyecharts import options as opts
@@ -7,21 +6,19 @@ from pyecharts import options as opts
 class PieChart:
     def __init__(
         self,
-        title_name,
+        title,
         yaxis_name,
         xaxis_name,
         height="1000px",
-        width="100%",
-        bg_color="#232329",
     ):
         self.PIE_CHART = Pie(
-            init_opts=opts.InitOpts(width=width, height=height, bg_color=bg_color)
+            init_opts=opts.InitOpts(height=height, width="100%", bg_color="#232329")
         )
 
         self.PIE_CHART.set_global_opts(
             title_opts=opts.TitleOpts(
-                title=title_name,
-                pos_left="60",
+                title=title,
+                pos_left="10",
                 pos_right="0",
                 pos_top="10",
                 pos_bottom="0",
@@ -33,8 +30,8 @@ class PieChart:
             ),
             legend_opts=opts.LegendOpts(
                 type_="scroll", 
-                pos_left="70%", 
-                pos_top = "10%",
+                pos_left="55%", 
+                pos_top = "20%",
                 orient="vertical",
                 textstyle_opts=opts.TextStyleOpts(
                     color='#FFFFFF'
@@ -126,26 +123,10 @@ class PieChart:
             ],
         )
 
-
-class TopVaultsByTVL(PieChart):
-    def __init__(self, dataframe, height="1000px", width="100%", bg_color="#232329"):
-        self.dataframe = dataframe
-        self.dataframe.columns = [
-            "name",
-            "totalValueLockedUSD",
-            "inputTokenBalance",
-            "outputTokenSupply",
-        ]
-
-        super().__init__(
-            "Top 10 Vaults (By TVL)", "", "", height, width, bg_color
-        )
-
-    def chart(self):
+    def add(self, series_name, data, center=['30%', '50%']):
         self.PIE_CHART.add(
-            series_name='', 
-            data_pair=[list(z) for z in zip(self.dataframe.name.to_list(), self.dataframe.totalValueLockedUSD.round(1).to_list())],
-            center=["40%", "50%"],
+            series_name=series_name, 
+            data_pair=data,
+            center=center,
+            label_opts=opts.LabelOpts(is_show=False)
         )
-        self.PIE_CHART.set_series_opts(label_opts=opts.LabelOpts(is_show=False))
-        return self.PIE_CHART
