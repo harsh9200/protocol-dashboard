@@ -10,8 +10,9 @@ class LineChart:
         title,
         xaxis_name,
         yaxis_name,
-        yaxis_namegap=35,
+        yaxis_namegap=40,
         height="1000px",
+        logo_position=70
     ):
         self.LINE_CHART = Line(
             init_opts=opts.InitOpts(height=height, width="100%", bg_color="#232329")
@@ -138,6 +139,19 @@ class LineChart:
             datazoom_opts=[
                 opts.DataZoomOpts(range_start=0, range_end=100),
                 opts.DataZoomOpts(type_="inside"),
+            ],
+            graphic_opts=[
+                opts.GraphicImage(
+                    graphic_item=opts.GraphicItem(
+                        id_="logo", right=logo_position, top=70, z=-10, bounding="raw", origin=[75, 75]
+                    ),
+                    graphic_imagestyle_opts=opts.GraphicImageStyleOpts(
+                        image="https://messari.io/images/Messari_horizontal_white-03.svg",
+                        width=165,
+                        height=30,
+                        opacity=0.2,
+                    ),
+                )
             ],
         )
     

@@ -128,5 +128,6 @@ class PieChart:
             series_name=series_name, 
             data_pair=data,
             center=center,
-            label_opts=opts.LabelOpts(is_show=False)
+            label_opts=opts.LabelOpts(is_show=False),
+            radius=["40%", "65%"],
         )

@@ -1,7 +1,7 @@
 generated/
 build/
 Reference/
-
+__pycache__/
 **/.DS_Store
 
 ############################

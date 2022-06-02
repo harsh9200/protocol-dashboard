@@ -10,6 +10,7 @@ class BarOverlapLineChart:
         yaxis_name,
         xaxis_name,
         height="1000px",
+        logo_position=70
     ):
         self.BAR_CHART = Bar(
             init_opts=opts.InitOpts(height=height, width="100%", bg_color="#232329")
@@ -146,6 +147,19 @@ class BarOverlapLineChart:
                 opts.DataZoomOpts(range_start=0, range_end=100),
                 opts.DataZoomOpts(type_="inside"),
             ],
+            graphic_opts=[
+                opts.GraphicImage(
+                    graphic_item=opts.GraphicItem(
+                        id_="logo", right=logo_position, top=70, z=-10, bounding="raw", origin=[75, 75]
+                    ),
+                    graphic_imagestyle_opts=opts.GraphicImageStyleOpts(
+                        image="https://messari.io/images/Messari_horizontal_white-03.svg",
+                        width=165,
+                        height=30,
+                        opacity=0.2,
+                    ),
+                )
+            ],
         )
 
         self.LINE_CHART = Line()
@@ -179,121 +193,23 @@ class BarOverlapLineChart:
                 name=name,
                 type_="value",
                 name_location="middle",
-                name_gap=50,
+                name_gap=40,
                 name_rotate=-90,
                 name_textstyle_opts=opts.TextStyleOpts(
                     font_size=15,
                 ),
+                axislabel_opts=opts.LabelOpts(
+                    formatter=JsCode(
+                        """
+                        function Formatter(n) {
+                            if (n < 1e3) return n;
+                            if (n >= 1e3 && n < 1e6) return +(n / 1e3).toFixed(1) + "K";
+                            if (n >= 1e6 && n < 1e9) return +(n / 1e6).toFixed(1) + "M";
+                            if (n >= 1e9 && n < 1e12) return +(n / 1e9).toFixed(1) + "B";
+                            if (n >= 1e12) return +(n / 1e12).toFixed(1) + "T";
+                        };
+                        """
+                    )
+                )
             )
         )
-
-class DepositsAndWithdrawsChart(BarOverlapLineChart):
-    def __init__(self, dataframe, height="1000px", width="100%", bg_color="#232329"):
-        self.dataframe = dataframe
-        self.dataframe.columns = [
-            "id",
-            "dailyActiveUsers",
-            "cumulativeUniqueUsers",
-            "dailyDepositCount",
-            "dailyWithdrawCount",
-            "dailyTransactionCount",
-            "timestamp",
-        ]
-
-        super().__init__(
-            "Deposits And Withdraws", "Traders", "UTC", height, width, bg_color
-        )
-
-    def chart(self):
-        xaxis_data = format_xaxis(self.dataframe.id)
-
-        self.BAR_CHART.add_xaxis(xaxis_data)
-        self.BAR_CHART.add_yaxis(
-            series_name="Deposits",
-            y_axis=self.dataframe.dailyDepositCount.to_list(),
-            itemstyle_opts=opts.ItemStyleOpts(color="#5a66f9"),
-        )
-        self.BAR_CHART.add_yaxis(
-            series_name="Withdraws",
-            y_axis=self.dataframe.dailyWithdrawCount.to_list(),
-            itemstyle_opts=opts.ItemStyleOpts(color="#bb6bd9"),
-        )
-        self.BAR_CHART.extend_axis(
-            yaxis=opts.AxisOpts(
-                name="Transactions",
-                type_="value",
-                name_location="middle",
-                name_gap=50,
-                name_rotate=-90,
-                name_textstyle_opts=opts.TextStyleOpts(
-                    font_size=15,
-                ),
-            )
-        )
-
-        self.LINE_CHART.add_xaxis(xaxis_data=xaxis_data)
-        self.LINE_CHART.add_yaxis(
-            series_name="Transactions",
-            yaxis_index=1,
-            is_symbol_show=False,
-            y_axis=self.dataframe.dailyTransactionCount.to_list(),
-            itemstyle_opts=opts.ItemStyleOpts(color="#6ac5c8"),
-            label_opts=opts.LabelOpts(is_show=False),
-        )
-
-        self.BAR_CHART.set_series_opts(label_opts=opts.LabelOpts(is_show=False))
-
-        return self.BAR_CHART.overlap(self.LINE_CHART)
-
-class ActiveUsers(BarOverlapLineChart):
-    def __init__(self, dataframe, height="1000px", width="100%", bg_color="#232329"):
-        self.dataframe = dataframe
-        self.dataframe.columns = [
-            "id",
-            "dailyActiveUsers",
-            "cumulativeUniqueUsers",
-            "dailyDepositCount",
-            "dailyWithdrawCount",
-            "dailyTransactionCount",
-            "timestamp",
-        ]
-
-        super().__init__(
-            "Activity", "Daily Active Users", "UTC", height, width, bg_color
-        )
-
-    def chart(self):
-        xaxis_data = format_xaxis(self.dataframe.id)
-
-        self.BAR_CHART.add_xaxis(xaxis_data)
-        self.BAR_CHART.add_yaxis(
-            series_name="Daily Active Users",
-            y_axis=self.dataframe.dailyActiveUsers.to_list(),
-            itemstyle_opts=opts.ItemStyleOpts(color="#5a66f9"),
-        )
-        self.BAR_CHART.extend_axis(
-            yaxis=opts.AxisOpts(
-                name="Cumulative Unique Users",
-                type_="value",
-                name_location="middle",
-                name_gap=50,
-                name_rotate=-90,
-                name_textstyle_opts=opts.TextStyleOpts(
-                    font_size=15,
-                ),
-            )
-        )
-
-        self.LINE_CHART.add_xaxis(xaxis_data=xaxis_data)
-        self.LINE_CHART.add_yaxis(
-            series_name="Cumulative Unique Users",
-            yaxis_index=1,
-            is_symbol_show=False,
-            y_axis=self.dataframe.cumulativeUniqueUsers.to_list(),
-            itemstyle_opts=opts.ItemStyleOpts(color="#6ac5c8"),
-            label_opts=opts.LabelOpts(is_show=False),
-        )
-
-        self.BAR_CHART.set_series_opts(label_opts=opts.LabelOpts(is_show=False))
-
-        return self.BAR_CHART.overlap(self.LINE_CHART)

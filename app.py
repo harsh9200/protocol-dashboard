@@ -1,17 +1,22 @@
 from config import *
 from subgrounds.subgrounds import Subgrounds
 from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
-from metrics import FinancialsDailySnapshots, LiquidityPools, MetricsDailySnapshots, Swaps
+from metrics import DepositTransactions, FinancialsDailySnapshots, LiquidityPools, MetricsDailySnapshots, SwapTransactions, WithdawTransactions
 
 import streamlit as st
 from streamlit_echarts import st_pyecharts
 
 st.set_page_config(layout="wide")
 
-st.title("Curve Subgraph")
+st.title("DEX Subgraphs Dashboard")
+
+subgraph_name = st.selectbox(
+    '',
+    ('Balancer v2', 'Curve', 'Saddle Finance', 'Sushiswap', 'Uniswap v3')
+)
 
 SUBGROUND = Subgrounds()
-SUBGRAPH = SUBGROUND.load_subgraph(SUBGRAPH_URL)
+SUBGRAPH = SUBGROUND.load_subgraph(SUBGRAPH_URL[subgraph_name])
 
 FinancialsSnapshot = FinancialsDailySnapshots(SUBGRAPH, SUBGROUND, initial_timestamp=1601322741)
 
@@ -82,8 +87,47 @@ with col2:
         key="Top10ByVolume",
     )
 
-swap = Swaps(SUBGRAPH, SUBGROUND)
+swap = SwapTransactions(SUBGRAPH, SUBGROUND)
 
-st.header("Swaps")
-with st.container():
-    AgGrid(swap.dataframe)
+if not swap.dataframe.empty:
+    st.header("Swap Transactions")
+    
+    with st.container():
+        AgGrid(
+            swap.dataframe, 
+            editable=True,
+            data_return_mode="filtered_and_sorted",
+            update_mode="no_update",
+            fit_columns_on_grid_load=True, 
+            theme="streamlit"
+        )
+
+deposits = DepositTransactions(SUBGRAPH, SUBGROUND)
+
+if not deposits.dataframe.empty:
+    st.header("Deposit Transactions")
+    
+    with st.container():
+        AgGrid(
+            deposits.dataframe, 
+            editable=True,
+            data_return_mode="filtered_and_sorted",
+            update_mode="no_update",
+            fit_columns_on_grid_load=True, 
+            theme="streamlit"
+        )
+
+withdraws = WithdawTransactions(SUBGRAPH, SUBGROUND)
+
+if not withdraws.dataframe.empty:
+    st.header("Withdraw Transactions")
+    
+    with st.container():
+        AgGrid(
+            withdraws.dataframe, 
+            editable=True,
+            data_return_mode="filtered_and_sorted",
+            update_mode="no_update",
+            fit_columns_on_grid_load=True, 
+            theme="streamlit"
+        )

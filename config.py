@@ -1,4 +1,10 @@
-SUBGRAPH_URL = "https://api.thegraph.com/subgraphs/name/messari/curve-finance-ethereum"
+SUBGRAPH_URL = {
+    'Balancer v2': "https://api.thegraph.com/subgraphs/name/messari/balancer-v2-ethereum", 
+    'Curve': "https://api.thegraph.com/subgraphs/name/messari/curve-finance-ethereum", 
+    'Saddle Finance': "https://api.thegraph.com/subgraphs/name/messari/saddle-finance-ethereum",
+    'Sushiswap': "https://api.thegraph.com/subgraphs/name/messari/sushiswap-ethereum", 
+    'Uniswap v3': "https://api.thegraph.com/subgraphs/name/messari/uniswap-v3-ethereum"
+}
 
 LINE_CHART_GLOBAL_CONFIG = {
     "title_opts": {
