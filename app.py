@@ -1,22 +1,22 @@
 from config import *
+from st_aggrid import AgGrid
 from subgrounds.subgrounds import Subgrounds
-from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
-from metrics import DepositTransactions, FinancialsDailySnapshots, LiquidityPools, MetricsDailySnapshots, SwapTransactions, WithdawTransactions
+from tables import DepositTransactions, SwapTransactions, WithdawTransactions
+from metrics import FinancialsDailySnapshots, LiquidityPools, MetricsDailySnapshots
 
 import streamlit as st
 from streamlit_echarts import st_pyecharts
-
 st.set_page_config(layout="wide")
 
 st.title("DEX Subgraphs Dashboard")
 
 subgraph_name = st.selectbox(
-    '',
-    ('Balancer v2', 'Curve', 'Saddle Finance', 'Sushiswap', 'Uniswap v3')
+    label='',
+    options=['Sushiswap', 'Uniswap v3', 'Balancer v2', 'Curve', 'Saddle Finance']
 )
 
 SUBGROUND = Subgrounds()
-SUBGRAPH = SUBGROUND.load_subgraph(SUBGRAPH_URL[subgraph_name])
+SUBGRAPH = SUBGROUND.load_subgraph(SUBGRAPH_API_URL[subgraph_name])
 
 FinancialsSnapshot = FinancialsDailySnapshots(SUBGRAPH, SUBGROUND, initial_timestamp=1601322741)
 

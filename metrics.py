@@ -1,10 +1,7 @@
 from utils import *
 from config import *
-import pandas as pd
-from charts.Pie import PieChart
-from charts.Line import LineChart
-from charts.BarMixedLine import BarOverlapLineChart
 
+from CustomCharts import CustomLineChart, CustomBarChart, CustomPieChart
 
 class FinancialsDailySnapshots:
     def __init__(self, subgraph, subground, initial_timestamp):
@@ -25,8 +22,8 @@ class FinancialsDailySnapshots:
         return dataframe
 
     def tvl_chart(self):
-        chart = LineChart(
-            title="Total Value Locked (USD)", xaxis_name="UTC", yaxis_name="Daily TVL"
+        chart = CustomLineChart(
+            chart_title="Total Value Locked (USD)", xaxis_name="UTC", yaxis_name="Daily TVL"
         )
 
         # x_axis --> timestamp
@@ -44,8 +41,8 @@ class FinancialsDailySnapshots:
         return chart.LINE_CHART
 
     def volume_chart(self):
-        chart = LineChart(
-            title="Volume (USD)", xaxis_name="UTC", yaxis_name="Daily Volume"
+        chart = CustomLineChart(
+            chart_title="Volume (USD)", xaxis_name="UTC", yaxis_name="Daily Volume"
         )
 
         xaxis_data = format_xaxis(self.dataframe.financialsDailySnapshots_id)
@@ -64,8 +61,8 @@ class FinancialsDailySnapshots:
         return chart.LINE_CHART
 
     def revenue_chart(self):
-        chart = BarOverlapLineChart(
-            title="Revenue (USD)",
+        chart = CustomBarChart(
+            chart_title="Revenue (USD)",
             xaxis_name="UTC",
             yaxis_name="Revenue",
         )
@@ -103,8 +100,8 @@ class FinancialsDailySnapshots:
         return chart.BAR_CHART.overlap(chart.LINE_CHART)
 
     def cumulative_revenue_chart(self):
-        chart = LineChart(
-            title="Cumulative Revenue (USD)",
+        chart = CustomLineChart(
+            chart_title="Cumulative Revenue (USD)",
             xaxis_name="UTC",
             yaxis_name="Daily Cumulative Revenue",
             yaxis_namegap=45,
@@ -112,10 +109,8 @@ class FinancialsDailySnapshots:
 
         xaxis_data = format_xaxis(self.dataframe.financialsDailySnapshots_id)
 
-        # x_axis --> timestamp
         chart.add_xaxis(xaxis_data)
 
-        # y_axis --> Cumu. Supply Side Revenue
         chart.add_yaxis(
             color="#5a66f9",
             series_name="Supply Side Revenue (USD)",
@@ -124,7 +119,6 @@ class FinancialsDailySnapshots:
             ).to_list(),
         )
 
-        # y_axis --> Cumu. Protocol Side Revenue
         chart.add_yaxis(
             color="#fc03f8",
             series_name="Protocol Side Revenue (USD)",
@@ -133,7 +127,6 @@ class FinancialsDailySnapshots:
             ).to_list(),
         )
 
-        # y_axis --> Cumu. Total Side Revenue
         chart.add_yaxis(
             color="#12b8ff",
             series_name="Total Side Revenue (USD)",
@@ -143,7 +136,6 @@ class FinancialsDailySnapshots:
         )
 
         return chart.LINE_CHART
-
 
 class MetricsDailySnapshots:
     def __init__(self, subgraph, subground, initial_timestamp):
@@ -164,8 +156,8 @@ class MetricsDailySnapshots:
         return dataframe
 
     def transactions_count_chart(self):
-        chart = BarOverlapLineChart(
-            title="Transactions",
+        chart = CustomBarChart(
+            chart_title="Transactions",
             xaxis_name="UTC",
             yaxis_name="Count Of Transactions",
             logo_position=130
@@ -211,8 +203,8 @@ class MetricsDailySnapshots:
         return chart.BAR_CHART.overlap(chart.LINE_CHART)
 
     def active_users_chart(self):
-        chart = LineChart(
-            title="Active Users",
+        chart = CustomLineChart(
+            chart_title="Active Users",
             xaxis_name="UTC",
             yaxis_name="Count Of Users",
             logo_position=135
@@ -232,19 +224,19 @@ class MetricsDailySnapshots:
 
         return chart.LINE_CHART
 
-
 class LiquidityPools:
     def __init__(self, subgraph, subground, initial_timestamp=None):
         self.subgraph = subgraph
         self.subground = subground
         self.timestamp = initial_timestamp
 
-        self.dataframe = self.query()
+        self.dataframe_tvl = self.query(orderBy=self.subgraph.LiquidityPool.totalValueLockedUSD)
+        self.dataframe_volume = self.query(orderBy=self.subgraph.LiquidityPool.cumulativeVolumeUSD)
 
-    def query(self):
+    def query(self, orderBy):
         pools = self.subgraph.Query.liquidityPools(
             first=10,
-            orderBy=self.subgraph.LiquidityPool.totalValueLockedUSD,
+            orderBy=orderBy,
             orderDirection="desc",
         )
 
@@ -255,26 +247,24 @@ class LiquidityPools:
         return dataframe
 
     def top_10_pools_by_tvl(self):
-        chart = PieChart(title="Top 10 Pools (By TVL)", xaxis_name="", yaxis_name="")
+        chart = CustomPieChart(
+            chart_title="Top 10 Pools (By TVL)", 
+        )
         chart.add(
             series_name="",
             data=[
                 list(z)
                 for z in zip(
-                    self.dataframe.liquidityPools_name.to_list(),
-                    self.dataframe.liquidityPools_totalValueLockedUSD.round(
-                        1
-                    ).to_list(),
+                    self.dataframe_tvl.liquidityPools_name.to_list(),
+                    self.dataframe_tvl.liquidityPools_totalValueLockedUSD.round(1).to_list(),
                 )
             ],
         )
         return chart.PIE_CHART
 
     def top_10_pools_by_volume(self):
-        chart = PieChart(title="Top 10 Pools (By Volume)", xaxis_name="", yaxis_name="")
-
-        sorted_DF = self.dataframe.sort_values(
-            by=["liquidityPools_cumulativeVolumeUSD"], ascending=False
+        chart = CustomPieChart(
+            chart_title="Top 10 Pools (By Volume)", 
         )
 
         chart.add(
@@ -282,139 +272,9 @@ class LiquidityPools:
             data=[
                 list(z)
                 for z in zip(
-                    sorted_DF.liquidityPools_name.to_list(),
-                    sorted_DF.liquidityPools_cumulativeVolumeUSD.round(1).to_list(),
+                    self.dataframe_volume.liquidityPools_name.to_list(),
+                    self.dataframe_volume.liquidityPools_cumulativeVolumeUSD.round(1).to_list(),
                 )
             ],
         )
         return chart.PIE_CHART
-
-
-class SwapTransactions:
-    def __init__(self, subgraph, subground, initial_timestamp=None):
-        self.subgraph = subgraph
-        self.subground = subground
-        self.timestamp = initial_timestamp
-        self.columns_order = [
-            'Date', 'blockNumber', 'from', 'tokenIn', 'amountIn',
-            'amountInUSD', 'tokenOut', 'amountOut', 'amountOutUSD'
-        ]
-        self.dataframe = self.query()
-
-    def query(self):
-        swaps = self.subgraph.Query.swaps(
-            first=15,
-            orderBy=self.subgraph.Swap.timestamp,
-            orderDirection="desc",
-        )
-
-        dataframe = self.subground.query_df([swaps])
-        
-        if dataframe.empty:
-            return dataframe
-        
-        dataframe.columns = [
-            "id", "hash", "logIndex", "protocol_id", "to", "from", "blockNumber", "Date", "tokenIn",
-            "amountIn", "amountInUSD", "tokenOut", "amountOut", "amountOutUSD", "pool_id",
-        ]
-
-        dataframe.drop(
-            ["id", "to", "logIndex", "protocol_id", "pool_id"], axis=1, inplace=True
-        )
-        dataframe['hash'] = dataframe['hash'].map(str)
-        dataframe['blockNumber'] = dataframe['blockNumber'].map(int)
-        dataframe['Date'] = pd.to_datetime(dataframe['Date'].map(int), unit='s')
-        dataframe['tokenIn'] = dataframe['tokenIn'].map(str)
-        dataframe['amountIn'] = dataframe['amountIn'].map(str)
-        dataframe['amountInUSD'] = dataframe['amountInUSD'].map(float)
-        dataframe['tokenOut'] = dataframe['tokenOut'].map(str)
-        dataframe['amountOut'] = dataframe['amountOut'].map(str)
-        dataframe['amountOutUSD'] = dataframe['amountOutUSD'].map(float)
-
-        dataframe = dataframe.reindex(columns=self.columns_order)
-        
-        return dataframe
-
-class DepositTransactions:
-    def __init__(self, subgraph, subground, initial_timestamp=None):
-        self.subgraph = subgraph
-        self.subground = subground
-        self.timestamp = initial_timestamp
-        self.columns_order = [
-            'Date', 'blockNumber', 'from', 'outputToken', 'outputTokenAmount',
-            'outputTokenAmountUSD'
-        ]
-        self.dataframe = self.query()
-
-    def query(self):
-        swaps = self.subgraph.Query.deposits(
-            first=15,
-            orderBy=self.subgraph.Deposit.timestamp,
-            orderDirection="desc",
-        )
-
-        dataframe = self.subground.query_df([swaps])
-
-        if dataframe.empty:
-            return dataframe
-        
-        dataframe.columns = [
-            'id', 'hash', 'logIndex','protocol_id', 'to', 'from', 'blockNumber', 
-            'Date', 'outputToken', 'outputTokenAmount', 'outputTokenAmountUSD', 'pool_id'
-        ]
-
-        dataframe.drop(
-            ["id", "to", "logIndex", "protocol_id", "pool_id"], axis=1, inplace=True
-        )
-        dataframe['hash'] = dataframe['hash'].map(str)
-        dataframe['blockNumber'] = dataframe['blockNumber'].map(int)
-        dataframe['Date'] = pd.to_datetime(dataframe['Date'].map(int), unit='s')
-        dataframe['outputToken'] = dataframe['outputToken'].map(str)
-        dataframe['outputTokenAmount'] = dataframe['outputTokenAmount'].map(float)
-        dataframe['outputTokenAmountUSD'] = dataframe['outputTokenAmountUSD'].map(str)
-
-        dataframe = dataframe.reindex(columns=self.columns_order)
-        
-        return dataframe
-
-class WithdawTransactions:
-    def __init__(self, subgraph, subground, initial_timestamp=None):
-        self.subgraph = subgraph
-        self.subground = subground
-        self.timestamp = initial_timestamp
-        self.columns_order = [
-            'Date', 'blockNumber', 'from', 'outputToken', 'outputTokenAmount',
-            'outputTokenAmountUSD'
-        ]
-        self.dataframe = self.query()
-
-    def query(self):
-        swaps = self.subgraph.Query.withdraws(
-            first=15,
-            orderBy=self.subgraph.Withdraw.timestamp,
-            orderDirection="desc",
-        )
-
-        dataframe = self.subground.query_df([swaps])
-
-        if dataframe.empty:
-            return dataframe
-        
-        dataframe.columns = [
-            'id', 'hash', 'logIndex', 'protocol_id', 'to', 'from', 'blockNumber', 
-            'Date', 'outputToken', 'outputTokenAmount', 'outputTokenAmountUSD', 'pool_id'
-        ]
-
-        dataframe.drop(
-            ["id", "to", "logIndex", "protocol_id", "pool_id"], axis=1, inplace=True
-        )
-        dataframe['hash'] = dataframe['hash'].map(str)
-        dataframe['blockNumber'] = dataframe['blockNumber'].map(int)
-        dataframe['Date'] = pd.to_datetime(dataframe['Date'].map(int), unit='s')
-        dataframe['outputToken'] = dataframe['outputToken'].map(str)
-        dataframe['outputTokenAmount'] = dataframe['outputTokenAmount'].map(float)
-        dataframe['outputTokenAmountUSD'] = dataframe['outputTokenAmountUSD'].map(str)
-
-        dataframe = dataframe.reindex(columns=self.columns_order)
-        
-        return dataframe
