@@ -12,7 +12,10 @@ st.title("DEX Subgraphs Dashboard")
 
 subgraph_name = st.selectbox(
     label='',
-    options=['Sushiswap', 'Uniswap v3', 'Balancer v2', 'Curve', 'Saddle Finance']
+    options=[
+        'Sushiswap (Ethereum)', 'Sushiswap (Avax)', 'Uniswap v3 (Ethereum)', 
+        'Balancer v2 (Ethereum)', 'Curve (Ethereum)', 'Saddle Finance (Ethereum)'
+    ]
 )
 
 SUBGROUND = Subgrounds()

@@ -2,11 +2,12 @@ from utils import *
 from pyecharts import options as opts
 
 SUBGRAPH_API_URL = {
-    'Balancer v2': "https://api.thegraph.com/subgraphs/name/messari/balancer-v2-ethereum", 
-    'Curve': "https://api.thegraph.com/subgraphs/name/messari/curve-finance-ethereum", 
-    'Saddle Finance': "https://api.thegraph.com/subgraphs/name/messari/saddle-finance-ethereum",
-    'Sushiswap': "https://api.thegraph.com/subgraphs/name/messari/sushiswap-ethereum", 
-    'Uniswap v3': "https://api.thegraph.com/subgraphs/name/messari/uniswap-v3-ethereum"
+    'Balancer v2 (Ethereum)': "https://api.thegraph.com/subgraphs/name/messari/balancer-v2-ethereum", 
+    'Curve (Ethereum)': "https://api.thegraph.com/subgraphs/name/messari/curve-finance-ethereum", 
+    'Saddle Finance (Ethereum)': "https://api.thegraph.com/subgraphs/name/messari/saddle-finance-ethereum",
+    'Sushiswap (Ethereum)': "https://api.thegraph.com/subgraphs/name/messari/sushiswap-ethereum", 
+    'Sushiswap (Avax)': "https://api.thegraph.com/subgraphs/name/messari/sushiswap-avalanche",
+    'Uniswap v3 (Ethereum)': "https://api.thegraph.com/subgraphs/name/messari/uniswap-v3-ethereum"
 }
 
 DEFAULT_TITLE_OPTS = opts.TitleOpts(
